@@ -1,0 +1,42 @@
+- name: Check if /dev/sdc exists using raw
+  raw: "[ -b /dev/sdc ] && echo 'exists' || echo 'missing'"
+  register: sdc_check
+
+- name: Create GPT partition table
+  raw: "parted -s /dev/sdc mklabel gpt"
+  when: "'exists' in sdc_check.stdout"
+
+- name: Create partitions
+  raw: |
+    parted -s /dev/sdc mkpart primary xfs 0% 40%
+    parted -s /dev/sdc mkpart primary ext4 40% 100%
+  when: "'exists' in sdc_check.stdout"
+
+- name: Refresh partition table
+  raw: "partprobe /dev/sdc"
+  when: "'exists' in sdc_check.stdout"
+
+- name: Format partitions
+  raw: |
+    mkfs.xfs /dev/sdc1
+    mkfs.ext4 /dev/sdc2
+  when: "'exists' in sdc_check.stdout"
+
+- name: Create mount points
+  raw: |
+    mkdir -p /part1
+    mkdir -p /part2
+  when: "'exists' in sdc_check.stdout"
+
+- name: Mount partitions
+  raw: |
+    mount /dev/sdc1 /part1
+    mount /dev/sdc2 /part2
+  when: "'exists' in sdc_check.stdout"
+
+- name: Persist mount config in /etc/fstab
+  raw: |
+    echo '/dev/sdc1 /part1 xfs defaults 0 0' >> /etc/fstab
+    echo '/dev/sdc2 /part2 ext4 defaults 0 0' >> /etc/fstab
+  when: "'exists' in sdc_check.stdout"
+

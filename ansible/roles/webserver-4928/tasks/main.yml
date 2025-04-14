@@ -1,0 +1,22 @@
+---
+- name: Install Apache web server using raw (CentOS) without system update
+  raw: "yum install -y {{ apache_package }}"
+  become: yes
+
+- name: Ensure Apache is started and enabled using raw (CentOS)
+  raw: "systemctl start {{ apache_service }} && systemctl enable {{ apache_service }}"
+  become: yes
+
+- name: Create simple HTML file with hostname on automation server (no sudo, no SSH)
+  delegate_to: localhost
+  become: no
+  shell: "echo '{{ inventory_hostname }}' > /tmp/{{ inventory_hostname }}.html"
+
+- name: Copy HTML file to remote node as index.html using raw and scp
+  delegate_to: localhost
+  become: no
+  shell: |
+    scp /tmp/{{ inventory_hostname }}.html {{ remote_user }}@{{ inventory_hostname }}:/tmp/index.html
+    ssh {{ remote_user }}@{{ inventory_hostname }} "sudo mv /tmp/index.html {{ web_root }}/index.html && sudo chmod 0444 {{ web_root }}/index.html"
+  notify: restart apache
+

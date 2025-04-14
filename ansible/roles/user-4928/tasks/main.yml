@@ -1,0 +1,12 @@
+---
+- name: Create group using raw
+  raw: "getent group {{ group_name }} || groupadd {{ group_name }}"
+
+- name: Create users using raw and add to groups
+  raw: "id {{ item }} || useradd -m -s /bin/bash -G {{ group_name }},{{ secondary_group }} {{ item }}"
+  loop: "{{ users }}"
+
+- name: Generate SSH keys for users using raw
+  raw: "su - {{ item }} -c 'test -f ~/.ssh/id_rsa || ssh-keygen -t {{ ssh_key_type }} -N \"\" -f ~/.ssh/id_rsa'"
+  loop: "{{ users }}"
+

@@ -1,0 +1,4 @@
+- name: restart apache
+  raw: "systemctl restart httpd"
+  become: yes
+

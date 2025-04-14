@@ -1,0 +1,7 @@
+---
+- name: Append test block to /etc/profile using raw
+  raw: "echo '#Test block added by Ansible  {{ my_username }}' >> /etc/profile"
+
+- name: Append TMOUT variable to /etc/profile using raw
+  raw: "echo 'export TMOUT=1500' >> /etc/profile"
+

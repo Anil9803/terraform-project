@@ -1,0 +1,13 @@
+---
+- name: Configure Linux VMs for Automation Project
+  hosts: linux
+  gather_facts: no
+  become: yes
+  vars:
+    my_username: "n01714928"
+  roles:
+    - profile-4928
+    - user-4928
+    - datadisk-4928
+    - webserver-4928
+
